@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oficina de RA Industrial - SENAI MBI</title>
+
+  <!-- A-Frame & MindAR -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+
+  <!-- Biblioteca Paho MQTT -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body>
+
+  <a-scene mindar-image="imageTargetSrc: ./assets/alvo.mind;" color-space="sRGB"
+    renderer="colorManagement: true, physicallyCorrectLights: false" vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-entity mindar-image-target="targetIndex: 0">
+      <a-plane src="./assets/bg_tela.jpg" position="0 0 0" rotation="0 0 0" width="1.78" height="1" id="plano">
+        <a-text id="topico" value="---" color="#003366" align="center" position="-0.13 -0.023 0.01"
+          scale="0.25 0.25 0.25"></a-text>
+        <a-text id="pecasboas" value="---" color="#080" align="center" position="-0.21 -0.29 0.01"
+          scale="0.8 0.8 0.8"></a-text>
+        <a-text id="pecasruins" value="---" color="#800" align="center" position="0.215 -0.29 0.01"
+          scale="0.8 0.8 0.8"></a-text>
+        <a-text id="pecastotais" value="---" color="#880" align="center" position="0.645 -0.29 0.01"
+          scale="0.8 0.8 0.8"></a-text>
+      </a-plane>
+    </a-entity>
+  </a-scene>
+
+  <script>
+    const o_topico = document.getElementById("topico");
+    const o_pecasboas = document.getElementById("pecasboas");
+    const o_pecasruins = document.getElementById("pecasruins");
+    const o_pecastotais = document.getElementById("pecastotais");
+    let v_pecasboas = 0;
+    let v_pecasruins = 0;
+
+    // Configurações do Broker MQTT
+    const BROKER_HOST = 'mqtt-dashboard.com';
+    const BROKER_PORT = 8884; // Porta Websocket SSL/WSS
+    const BROKER_USER = 'root';
+    const BROKER_PASS = 'admin';
+    const topico = "CENTRO4.0/ROBO/1/#";
+    const CLIENT_ID = "mbi_automotiva_" + Math.random().toString(16).substring(2, 8);
+
+    // Instância do Cliente Paho MQTT
+    const client = new Paho.MQTT.Client(BROKER_HOST, BROKER_PORT, CLIENT_ID);
+
+    function onConnect() {
+      console.log("Conectado ao broker MQTT com sucesso!");
+      o_topico.setAttribute("value", topico);
+      client.subscribe(topico);
+      console.log(`Assinatura enviada para o tópico: ${topico}`);
+    }
+
+    function onFailure(responseObject) {
+      console.log("Falha ao conectar: " + responseObject.errorMessage);
+      console.log("Tentando nova conexão, em 5 segundos...");
+      setTimeout(() => onConnect(), 5000);
+    }
+
+    function onConnectionLost(responseObject) {
+      if (responseObject.errorCode !== 0) {
+        console.log("Conexão perdida: " + responseObject.errorMessage);
+      }
+      console.log("Tentando nova conexão, em 5 segundos...");
+      setTimeout(() => onConnect(), 5000);
+    }
+
+    function onMessageArrived(message) {
+      try {
+        atualizarDados(message);
+      } catch (erro) {
+        console.error("Erro ao processar JSON recebido:", erro);
+      }
+    }
+
+    // Função de Atualização dos Campos da Tela
+    function atualizarDados(message) {
+      const payload = message.destinationName;
+      const valor = Number(message.payloadString);
+      if (payload.endsWith("QTDBOA")) {
+        v_pecasboas = valor;
+      } else if (payload.endsWith("QTDRUIM")) {
+        v_pecasruins = valor;
+      }
+      v_pecastotais = v_pecasboas + v_pecasruins;
+      o_pecasboas.setAttribute("value", v_pecasboas);
+      o_pecasruins.setAttribute("value", v_pecasruins);
+      o_pecastotais.setAttribute("value", v_pecastotais);
+    }
+
+    // Conectar ao Broker MQTT
+    const connectOptions = {
+      useSSL: true,
+      userName: BROKER_USER,
+      password: BROKER_PASS,
+      onSuccess: onConnect,
+      onFailure: onFailure,
+      timeout: 5
+    };
+
+    client.onConnectionLost = onConnectionLost;
+    client.onMessageArrived = onMessageArrived;
+    client.connect(connectOptions);    
+  </script>
+</body>
+
+</html>
