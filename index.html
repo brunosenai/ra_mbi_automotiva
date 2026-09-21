@@ -17,12 +17,217 @@
     body {
       margin: 0;
       overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    #topo {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 100%;
+      height: 50px;
+      z-index: 9999;
+      background-color: rgba(255, 255, 255, 0.9);
+      gap: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 15px;
+      box-sizing: border-box;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    #topo button {
+      padding: 6px 12px;
+      border: none;
+      background-color: #003366;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+
+    #topo button:hover {
+      background-color: #004488;
+    }
+
+    #topo input[type="number"] {
+      padding: 5px 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 70px;
+      font-size: 14px;
+      -moz-appearance: numberinput;
+    }
+
+    /* Força a exibição dos botões de aumentar/diminuir (spin buttons) no Chrome/Edge/Safari */
+    #topo input[type="number"]::-webkit-inner-spin-button,
+    #topo input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: inner-spin-button !important;
+      opacity: 1 !important;
+      height: 24px;
+    }
+
+    /* Esconde a câmera e a cena 3D quando o Modo RA estiver OFF (modo HTML) */
+    body.modo-html a-scene,
+    body.modo-html video,
+    body.modo-html .mindar-ui-overlay {
+      display: none !important;
+    }
+
+    /* Dashboard HTML (Exibido quando RA está OFF) */
+    #dashboard-html {
+      display: none;
+      position: absolute;
+      top: 50px;
+      left: 0px;
+      width: 100%;
+      height: calc(100vh - 50px);
+      background-color: #f0f4f8;
+      background-image: radial-gradient(#d0d9e0 1px, transparent 1px);
+      background-size: 20px 20px;
+      justify-content: center;
+      align-items: center;
+      z-index: 9998;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    body.modo-html #dashboard-html {
+      display: flex;
+    }
+
+    .dash-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 51, 102, 0.15);
+      width: 100%;
+      max-width: 700px;
+      padding: 30px;
+      box-sizing: border-box;
+      border: 1px solid #e1e8ed;
+    }
+
+    .dash-header {
+      border-bottom: 2px solid #003366;
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .dash-header h2 {
+      margin: 0;
+      color: #003366;
+    }
+
+    .dash-topico-container {
+      font-family: monospace;
+      background: #eef4fc;
+      padding: 6px 12px;
+      border-radius: 6px;
+      color: #003366;
+      font-size: 14px;
+    }
+
+    .dash-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+    }
+
+    .metric-card {
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      transition: transform 0.2s;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .metric-card.boas {
+      background-color: #e6f4ea;
+      border-left: 5px solid #080;
+    }
+    .metric-card.boas .metric-title { color: #080; }
+    .metric-card.boas .metric-value { color: #080; }
+
+    .metric-card.ruins {
+      background-color: #fce8e6;
+      border-left: 5px solid #800;
+    }
+    .metric-card.ruins .metric-title { color: #800; }
+    .metric-card.ruins .metric-value { color: #800; }
+
+    .metric-card.totais {
+      background-color: #fef7e0;
+      border-left: 5px solid #b8860b;
+    }
+    .metric-card.totais .metric-title { color: #b8860b; }
+    .metric-card.totais .metric-value { color: #b8860b; }
+
+    .metric-title {
+      font-size: 14px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .metric-value {
+      font-size: 36px;
+      font-weight: bold;
     }
   </style>
 </head>
 
 <body>
 
+  <div id="topo">
+    <div>
+      <label for="robo" style="font-weight: bold; color: #333;">Robô:</label>
+      <input type="number" name="robo" id="robo" min="1" max="20" value="1">
+      <button onclick="atualizarTopico()">Atualizar</button>
+    </div>
+    <div>
+      <button id="btnModoRa" onclick="mudaModoRa()">RA on</button>
+    </div>
+  </div>
+
+  <!-- Dashboard HTML 2D (Modo Web tradicional) -->
+  <div id="dashboard-html">
+    <div class="dash-card">
+      <div class="dash-header">
+        <h2>Dashboard Industrial</h2>
+        <div class="dash-topico-container">
+          <span>Tópico: </span><strong id="html-topico">---</strong>
+        </div>
+      </div>
+      <div class="dash-metrics">
+        <div class="metric-card boas">
+          <div class="metric-title">Peças Boas</div>
+          <div class="metric-value" id="html-pecasboas">---</div>
+        </div>
+        <div class="metric-card ruins">
+          <div class="metric-title">Peças Ruins</div>
+          <div class="metric-value" id="html-pecasruins">---</div>
+        </div>
+        <div class="metric-card totais">
+          <div class="metric-title">Peças Totais</div>
+          <div class="metric-value" id="html-pecastotais">---</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cena A-Frame de Realidade Aumentada -->
   <a-scene mindar-image="imageTargetSrc: ./assets/alvo.mind;" color-space="sRGB"
     renderer="colorManagement: true, physicallyCorrectLights: false" vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false">
@@ -43,27 +248,55 @@
   </a-scene>
 
   <script>
+    // Elementos da cena A-Frame
     const o_topico = document.getElementById("topico");
     const o_pecasboas = document.getElementById("pecasboas");
     const o_pecasruins = document.getElementById("pecasruins");
     const o_pecastotais = document.getElementById("pecastotais");
+
+    // Elementos do Dashboard HTML
+    const o_htmlTopico = document.getElementById("html-topico");
+    const o_htmlPecasBoas = document.getElementById("html-pecasboas");
+    const o_htmlPecasRuins = document.getElementById("html-pecasruins");
+    const o_htmlPecasTotais = document.getElementById("html-pecastotais");
+
+    // Elementos de controle
+    const o_robo = document.getElementById("robo");
+    const o_btnModoRa = document.getElementById("btnModoRa");
+
     let v_pecasboas = 0;
     let v_pecasruins = 0;
+    let v_robo = 1;
+    let v_modo_ra = true;
 
     // Configurações do Broker MQTT
     const BROKER_HOST = 'mqtt-dashboard.com';
     const BROKER_PORT = 8884; // Porta Websocket SSL/WSS
     const BROKER_USER = 'root';
     const BROKER_PASS = 'admin';
-    const topico = "CENTRO4.0/ROBO/1/#";
+    let topico = `CENTRO4.0/ROBO/${v_robo}/#`;
     const CLIENT_ID = "mbi_automotiva_" + Math.random().toString(16).substring(2, 8);
 
     // Instância do Cliente Paho MQTT
     const client = new Paho.MQTT.Client(BROKER_HOST, BROKER_PORT, CLIENT_ID);
 
+    // Alternar entre o modo Realidade Aumentada e Dashboard HTML Web
+    const mudaModoRa = () => {
+      if (v_modo_ra) {
+        v_modo_ra = false;
+        o_btnModoRa.innerHTML = "RA off";
+        document.body.classList.add("modo-html");
+      } else {
+        v_modo_ra = true;
+        o_btnModoRa.innerHTML = "RA on";
+        document.body.classList.remove("modo-html");
+      }
+    }
+
     function onConnect() {
       console.log("Conectado ao broker MQTT com sucesso!");
       o_topico.setAttribute("value", topico);
+      if (o_htmlTopico) o_htmlTopico.innerText = topico;
       client.subscribe(topico);
       console.log(`Assinatura enviada para o tópico: ${topico}`);
     }
@@ -90,7 +323,36 @@
       }
     }
 
-    // Função de Atualização dos Campos da Tela
+    // Função para atualizar a inscrição no novo tópico do robô
+    function atualizarTopico() {
+      const antigoTopico = topico;
+      v_robo = o_robo.value;
+      topico = `CENTRO4.0/ROBO/${v_robo}/#`;
+
+      // Atualiza visualmente o texto na RA e no Dashboard HTML
+      o_topico.setAttribute("value", topico);
+      if (o_htmlTopico) o_htmlTopico.innerText = topico;
+
+      // Reseta os contadores para o novo robô
+      v_pecasboas = 0;
+      v_pecasruins = 0;
+      o_pecasboas.setAttribute("value", "0");
+      o_pecasruins.setAttribute("value", "0");
+      o_pecastotais.setAttribute("value", "0");
+
+      if (o_htmlPecasBoas) o_htmlPecasBoas.innerText = "0";
+      if (o_htmlPecasRuins) o_htmlPecasRuins.innerText = "0";
+      if (o_htmlPecasTotais) o_htmlPecasTotais.innerText = "0";
+
+      // Atualiza a assinatura no broker MQTT
+      if (client && client.isConnected && client.isConnected()) {
+        client.unsubscribe(antigoTopico);
+        client.subscribe(topico);
+        console.log(`Inscrição alterada de '${antigoTopico}' para '${topico}'`);
+      }
+    }
+
+    // Função de Atualização dos Campos da Tela (RA + Dashboard HTML)
     function atualizarDados(message) {
       const payload = message.destinationName;
       const valor = Number(message.payloadString);
@@ -99,10 +361,17 @@
       } else if (payload.endsWith("QTDRUIM")) {
         v_pecasruins = valor;
       }
-      v_pecastotais = v_pecasboas + v_pecasruins;
+      const v_pecastotais = v_pecasboas + v_pecasruins;
+
+      // Atualiza elementos A-Frame (RA)
       o_pecasboas.setAttribute("value", v_pecasboas);
       o_pecasruins.setAttribute("value", v_pecasruins);
       o_pecastotais.setAttribute("value", v_pecastotais);
+
+      // Atualiza elementos Dashboard HTML Web
+      if (o_htmlPecasBoas) o_htmlPecasBoas.innerText = v_pecasboas;
+      if (o_htmlPecasRuins) o_htmlPecasRuins.innerText = v_pecasruins;
+      if (o_htmlPecasTotais) o_htmlPecasTotais.innerText = v_pecastotais;
     }
 
     // Conectar ao Broker MQTT
